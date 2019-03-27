@@ -6,6 +6,7 @@ owner:
   community: e516
   semester: sp19
 project:
-  code:
-  report:
-  command: https://github.com/cloudmesh-community/cm/blob/master/cloudmesh/vm/command/vm.py -- Planning to use the proposed virtual machine command from the link
+  - title:
+    url: https://github.com/cloudmesh-community/cm/blob/master/cloudmesh/vm/command/vm.py
+    comment: should use own hid for code development for now ... 
+    
