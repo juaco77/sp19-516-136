@@ -7,6 +7,8 @@ owner:
   semester: sp19
 project:
   - title:
-    url: https://github.com/cloudmesh-community/cm/blob/master/cloudmesh/vm/command/vm.py
+    url: https://github.com/cloudmesh-community/sp19-516-136/tree/master/project-code/cloudmesh.azure
+comments:
+  - url: https://github.com/cloudmesh-community/cm/blob/master/cloudmesh/vm/command/vm.py
     comment: should use own hid for code development for now ... 
     
