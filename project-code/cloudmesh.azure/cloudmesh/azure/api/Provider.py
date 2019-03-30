@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 import traceback
 
 from cloudmesh.management.configuration.config import Config
+from cloudmesh.common.dotdict import dotdict 
 
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
@@ -32,7 +33,7 @@ class Provider(ComputeNodeABC):
         self.cm = self.spec["cm"]
         self.cloudtype = self.cm["kind"]
         self.default = self.spec["default"]
-        cred = self.spec["credentials"]
+        cred = dotdict(self.spec["credentials"])
 
         if self.cloudtype == 'azure':
             subscription_id = cred['AZURE_SUBSCRIPTION_ID']
@@ -78,9 +79,9 @@ class Provider(ComputeNodeABC):
             }
         }
 
-        resource_client = ResourceManagementClient(credentials, subscription_id)
-        compute_client = ComputeManagementClient(credentials, subscription_id)
-        network_client = NetworkManagementClient(credentials, subscription_id)
+        resource_client = ResourceManagementClient(credentials, cred.AZURE_SUBSCRIPTION_ID)
+        compute_client = ComputeManagementClient(credentials, cred.AZURE_SUBSCRIPTION_ID)
+        network_client = NetworkManagementClient(credentials, cred.AZURE_SUBSCRIPTION_ID)
 
         # Create Resource group
         print('\nCreate Azure Virtual Machine Resource Group')
@@ -105,6 +106,7 @@ class Provider(ComputeNodeABC):
         async_vm_start.wait()
 
         raise NotImplementedError
+        # must return dict
 
     def restart(self, name=None):
         """
@@ -117,6 +119,7 @@ class Provider(ComputeNodeABC):
         async_vm_restart = self.compute_client.virtual_machines.restart(self.GROUP_NAME, self.VM_NAME)
         async_vm_restart.wait()
         raise NotImplementedError
+        # must return dict
 
     def stop(self, name=None):
         """
@@ -131,6 +134,7 @@ class Provider(ComputeNodeABC):
         async_vm_stop.wait()
 
         raise NotImplementedError
+        # must return dict
 
 
     def info(self, name=None):
@@ -145,6 +149,7 @@ class Provider(ComputeNodeABC):
         for vm in self.compute_client.virtual_machines.list(self.GROUP_NAME):
             print("\tVM: {}".format(vm.name))
         raise NotImplementedError
+        # must return dict
 
     
     def suspend(self, name=None):
@@ -155,6 +160,7 @@ class Provider(ComputeNodeABC):
         :return: The dict representing the node
         """
         raise NotImplementedError
+        # must return dict
 
 
     def list(self):
@@ -168,6 +174,7 @@ class Provider(ComputeNodeABC):
         for vm in self.compute_client.virtual_machines.list_all():
             print("\tVM: {}".format(vm.name))
         raise NotImplementedError
+        # must return dict
 
     def resume(self, name=None):
         """
@@ -177,6 +184,7 @@ class Provider(ComputeNodeABC):
         :return: the dict of the node
         """
         raise NotImplementedError
+        # must return dict
 
 
     def destroy(self, name=None):
@@ -191,6 +199,7 @@ class Provider(ComputeNodeABC):
         async_vm_delete.wait()
 
         raise NotImplementedError
+        # must return dict
 
 
     def create(self, name=None, image=None, size=None, timeout=360, **kwargs):
@@ -209,6 +218,7 @@ class Provider(ComputeNodeABC):
         create one node
         """
         raise NotImplementedError
+        # must return dict
 
 
     def rename(self, name=None, destination=None):
@@ -221,6 +231,7 @@ class Provider(ComputeNodeABC):
         """
         # if destination is None, increase the name counter and use the new name
         raise NotImplementedError
+        # must return dict
 
     def create_nic(self):
         """
@@ -268,7 +279,9 @@ class Provider(ComputeNodeABC):
             }
         )
         return async_nic_creation.result()
+        # must return dict
 
+    
     def create_vm_parameters(self):
         """
             Create the VM parameters structure.
@@ -297,3 +310,4 @@ class Provider(ComputeNodeABC):
                 }]
             },
         }
+    
