@@ -13,7 +13,7 @@ from msrestazure.azure_exceptions import CloudError
 # noinspection PyUnusedLocal
 class Provider(ComputeNodeABC):
 
-    def __init__(self, name="azure_arm", configuration="~/Users/juaco/Dropbox/00 - MS in Data Science/SP19 516/cloudmesh4.yaml"):
+    def __init__(self, name="azure_arm", configuration="~/.cloudmesh/cloudmesh4.yaml"):
         """
         Initializes the provider. The default parameters are read from the configutation
         file that is defined in yaml format.
