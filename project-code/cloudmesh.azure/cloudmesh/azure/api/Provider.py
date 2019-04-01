@@ -1,6 +1,6 @@
-from abc import ABCMeta, abstractmethod
 import traceback
 
+from cloudmesh.abstractclass.ComputeNodeABC import ComputeNodeABC
 from cloudmesh.management.configuration.config import Config
 from cloudmesh.common.dotdict import dotdict 
 
@@ -32,11 +32,10 @@ class Provider(ComputeNodeABC):
         self.spec = conf["cloud"][name]
         self.cm = self.spec["cm"]
         self.cloudtype = self.cm["kind"]
-        self.default = self.spec["default"]
+        deft = dotdict(self.spec["default"])
         cred = dotdict(self.spec["credentials"])
 
         if self.cloudtype == 'azure':
-            subscription_id = cred['AZURE_SUBSCRIPTION_ID']
             credentials = ServicePrincipalCredentials(
                 client_id = cred['AZURE_APPLICATION_ID'],
                 secret = cred['AZURE_SECRET_KEY'],
@@ -87,71 +86,136 @@ class Provider(ComputeNodeABC):
         print('\nCreate Azure Virtual Machine Resource Group')
         resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATION})
 
-        try:
-            nic = create_nic()
-        except CloudError:
-            print('A VM operation failed:\n{}'.format(traceback.format_exc()))
+try:
+    nic = create_nic()
+except CloudError:
+    print('A VM operation failed:\n{}'.format(traceback.format_exc()))
 
-    # TODO Add dicts at the end of all functions
-    def start(self, name=None):
+    def start(self, groupName=None, vmName=None):
         """
         start a node
 
         :param name: the unique node name
         :return:  The dict representing the node
         """
+        if groupName is None:
+            groupName = self.GROUP_NAME
+        if vmName is None:
+            vmName = self.VM_NAME
+
+        node = dotdict()
+        node.name = groupName
+        node.vmName = vmName
+
         # Start the VM
         print('\nStarting Azure VM')
-        async_vm_start = self.compute_client.virtual_machines.start(self.GROUP_NAME, self.VM_NAME)
+        async_vm_start = self.compute_client.virtual_machines.start(groupName, vmName)
         async_vm_start.wait()
+        return node
 
-        raise NotImplementedError
-        # must return dict
-
-    def restart(self, name=None):
+    # TODO Restart does not exist in ComputeNodeABC is it the same as Resume?
+    def restart(self, groupName=None, vmName=None):
         """
+        restart a node
 
         :param name:
-        :return:
+        :return: The dict representing the node
         """
+        if groupName is None:
+            groupName = self.GROUP_NAME
+        if vmName is None:
+            vmName = self.VM_NAME
+
+        node = dotdict()
+        node.name = groupName
+        node.vmName = vmName
+
         # Restart the VM
         print('\nRestarting Azure VM')
-        async_vm_restart = self.compute_client.virtual_machines.restart(self.GROUP_NAME, self.VM_NAME)
+        async_vm_restart = self.compute_client.virtual_machines.restart(groupName, vmName)
         async_vm_restart.wait()
-        raise NotImplementedError
-        # must return dict
+        return node
 
-    def stop(self, name=None):
+    def stop(self, groupName=None, vmName=None):
         """
         stops the node with the given name
 
         :param name:
         :return: The dict representing the node including updated status
         """
+        if groupName is None:
+            groupName = self.GROUP_NAME
+        if vmName is None:
+            vmName = self.VM_NAME
+
+        node = dotdict()
+        node.name = groupName
+        node.vmName = vmName
+
         # Stop the VM
         print('\nStopping Azure VM')
-        async_vm_stop = self.compute_client.virtual_machines.power_off(self.GROUP_NAME, self.VM_NAME)
+        async_vm_stop = self.compute_client.virtual_machines.power_off(groupName, vmName)
         async_vm_stop.wait()
+        return node
 
-        raise NotImplementedError
-        # must return dict
-
-
-    def info(self, name=None):
+    def info(self, groupName=None):
         """
         gets the information of a node with a given name
 
         :param name:
         :return: The dict representing the node including updated status
         """
+        if groupName is None:
+            groupName = self.GROUP_NAME
+
+        node = dotdict()
+        node.name = groupName
+
+        list = []
+
         # List VM in resource group
         print('\nList VMs in resource group')
-        for vm in self.compute_client.virtual_machines.list(self.GROUP_NAME):
+        for vm in self.compute_client.virtual_machines.list(groupName):
             print("\tVM: {}".format(vm.name))
-        raise NotImplementedError
-        # must return dict
+            v = dotdict()
+            v.cloud_id = vm.cloud_id
+            v.cloud = vm.cloud
+            v.name = vm.name
+            v.region = vm.region
+            v.size = vm.size
+            v.state = vm.state
+            v.public_ips = vm.public_ips
+            v.private_ips = vm.private_ips
+            list.append(v)
+        return self.to_dict(list)
 
-    
+    def list(self):
+        """
+        list all nodes id
+
+        :return: an array of dicts representing the nodes
+        """
+        # List all Azure Virtual Machines from my Account
+
+        list = []
+
+        print('\nList all Azure Virtual Machines')
+        for vm in self.compute_client.virtual_machines.list_all():
+            print("\tVM: {}".format(vm.name))
+            v = dotdict()
+            v.cloud_id = vm.cloud_id
+            v.cloud = vm.cloud
+            v.name = vm.name
+            v.region = vm.region
+            v.size = vm.size
+            v.state = vm.state
+            v.public_ips = vm.public_ips
+            v.private_ips = vm.private_ips
+            list.append(v)
+
+        return self.to_dict(list)
+
+    # TODO Implement Suspend Method
     def suspend(self, name=None):
         """
         suspends the node with the given name
@@ -162,20 +226,7 @@ class Provider(ComputeNodeABC):
         raise NotImplementedError
         # must return dict
 
-
-    def list(self):
-        """
-        list all nodes id
-
-        :return: an array of dicts representing the nodes
-        """
-        # List all Azure Virtual Machines from my Account
-        print('\nList all Azure Virtual Machines')
-        for vm in self.compute_client.virtual_machines.list_all():
-            print("\tVM: {}".format(vm.name))
-        raise NotImplementedError
-        # must return dict
-
+    # TODO Implement Resume Method (is it the same as restart?)
     def resume(self, name=None):
         """
         resume the named node
@@ -186,22 +237,28 @@ class Provider(ComputeNodeABC):
         raise NotImplementedError
         # must return dict
 
-
-    def destroy(self, name=None):
+    def destroy(self, groupName=None, vmName=None):
         """
         Destroys the node
         :param name: the name of the node
         :return: the dict of the node
         """
+        if groupName is None:
+            groupName = self.GROUP_NAME
+        if vmName is None:
+            vmName = self.VM_NAME
+
+        node = dotdict()
+        node.name = groupName
+        node.vmName = vmName
+
         # Delete VM
         print('\nDeleteing Azure Virtual Machine')
-        async_vm_delete = self.compute_client.virtual_machines.delete(self.GROUP_NAME, self.VM_NAME)
+        async_vm_delete = self.compute_client.virtual_machines.delete(groupName, vmName)
         async_vm_delete.wait()
+        return node
 
-        raise NotImplementedError
-        # must return dict
-
-
+    # TODO Migrate code from Init that is meant for creating a Node
     def create(self, name=None, image=None, size=None, timeout=360, **kwargs):
         """
         creates a named node
@@ -217,10 +274,9 @@ class Provider(ComputeNodeABC):
         """
         create one node
         """
-        raise NotImplementedError
         # must return dict
 
-
+    # TODO Implement Rename Method
     def rename(self, name=None, destination=None):
         """
         rename a node
@@ -230,7 +286,6 @@ class Provider(ComputeNodeABC):
         :return: the dict with the new name
         """
         # if destination is None, increase the name counter and use the new name
-        raise NotImplementedError
         # must return dict
 
     def create_nic(self):
@@ -281,7 +336,6 @@ class Provider(ComputeNodeABC):
         return async_nic_creation.result()
         # must return dict
 
-    
     def create_vm_parameters(self):
         """
             Create the VM parameters structure.
@@ -310,4 +364,11 @@ class Provider(ComputeNodeABC):
                 }]
             },
         }
-    
+
+    def to_dict(self, lst, id="name"):
+        d = {}
+        if lst is not None:
+            for entry in lst:
+                d[entry[id]] = entry
+        return d
+
