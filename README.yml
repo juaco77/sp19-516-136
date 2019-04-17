@@ -8,7 +8,9 @@ owner:
 project:
   - title: TBD
     code: https://github.com/cloudmesh-community/sp19-516-136/tree/master/project-code/cloudmesh.azure/cloudmesh/azure/api/Provider.py
-    url: https://github.com/cloudmesh-community/sp19-516-136/tree/master/project-code/cloudmesh.azure
+    url: https://github.com/cloudmesh-community/sp19-516-136/tree/master/project-code/cloudmesh.azure/README.md
     report: TBD
+    pytest:
+      - TBD
 comments:
   - url: https://github.com/cloudmesh-community/cm/blob/master/cloudmesh/vm/command/vm.py
