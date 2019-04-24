@@ -6,10 +6,10 @@
 | hid: sp19-516-136
 | github: [:cloud:](https://github.com/cloudmesh-community/sp19-516-136/project-report/report.md)
 
-##Project Documentation
+## Project Documentation
 The purpose of this project is to learn about features available in Azure's Python libraries to manage Virtual Machines.
 
-##Scope
+## Scope
 This document will walk you through every step needed to leverage Azure's Python Libraries
 to interact with 2 of their Services:
 1) Virtual Machines Management
@@ -18,10 +18,10 @@ to interact with 2 of their Services:
 Once we have a good understanding on how to use Azure's Python libraries, we will use that code to write Cloudmesh
 `Provider classes` for Virtual Machines (VM) and Storage.
 
-##Python Version
+## Python Version
 The information provided in this document considers the use of `Python 3.7.2`
  
-##Azure Credentials
+## Azure Credentials
 The first step before you are able to interact with Azure's API is to have your own set of credentials. 
 You can get a free Azure Account if your goal is to learn Azure. 
 The steps to create your credentials can be followed from Microsoft's documentation:
