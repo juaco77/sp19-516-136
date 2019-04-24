@@ -30,11 +30,11 @@ The steps to create your credentials can be followed from Microsoft's documentat
 Please note that you will need to activate your account within the first 30 days of creation, otherwise you will lose 
 access.
 
-#Virtual Machines 
+# Virtual Machines 
 
 Let's get started with Azure Virtual Machine Management using Python.
 
-###Azure Python Libraries 
+### Azure Python Libraries 
 In order to manage Azure Virtual Machines the following libraries will need to be imported.
 * ServicePrincipalCredentials
 * ResourceManagementClient
@@ -43,7 +43,7 @@ In order to manage Azure Virtual Machines the following libraries will need to b
 
 The following sections will dive deeper into each library's capabilities.
 
-###ServicePrincipalCredentials Class
+### ServicePrincipalCredentials Class
 
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
