@@ -1,4 +1,4 @@
-# Azure VM Management
+# Azure Virtal Machines and Storage Management using Azure Libraries
 | **Joaquin Avila Eggleton**
 | javilaeg@iu.edu
 | *Indiana University*
