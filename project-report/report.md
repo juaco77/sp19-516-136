@@ -12,7 +12,8 @@
 ---
 
 ## Project Documentation
-The purpose of this project is to learn about features available in Azure's Python libraries to manage Virtual Machines.
+The purpose of this project is to learn about features available in Azure's Python libraries to manage Virtual Machines
+as well as Storage.
 
 ## Scope
 This document will walk you through every step needed to leverage Azure's Python Libraries
@@ -402,7 +403,7 @@ The `VirtualMachinesOperations` methods available to manage resources are:
 Most methods only need 3 parameters:
 * **Resource Group Name** - Which was covered in the ResourceManagementClient section.
 * **Virtual Machine Name** - A String which refers to the VM Name (similar to Resource Group Name but for VMs).
-* **Parameters** - This item expects a JSON String with 4 main Objects.
+* **Parameters** - This item expects a JSON String with 5 main Objects.
 
 1. **Location** - Azure Location as explained in ResourceManagementClient Section.
 2. **OS_Profile** - This Object expects the Virtual Machine Name along with it's User and Password. 
