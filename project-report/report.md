@@ -12,7 +12,8 @@
 ---
 
 ## Project Documentation
-The purpose of this project is to learn about features available in Azure's Python libraries to manage Virtual Machines.
+The purpose of this project is to learn about features available in Azure's Python libraries to manage Virtual Machines
+as well as Storage.
 
 ## Scope
 This document will walk you through every step needed to leverage Azure's Python Libraries
@@ -228,7 +229,7 @@ The `ResourceGroupsOperations` methods available to manage resources are:
 |`list(filter=None, top=None, custom_headers=None, raw=False, **operation_config)`|Gets all the resource groups for a subscription.
 |`update(resource_group_name, parameters, custom_headers=None, raw=False, **operation_config)`|Updates a resource group. Resource groups can be updated through a simple PATCH operation to a group address. The format of the request is the same as that for creating a resource group. If a field is unspecified, the current value is retained.
 
-##### ResourceManagementClient Code Sample 1 - `create_or_update`
+##### ResourceManagementClient Code Sample 1 - `ResourceGroupsOperations` - `create_or_update`
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
@@ -251,7 +252,7 @@ LOCATION = 'EastUS'
 resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATION})
 ```
 
-##### ResourceManagementClient Code Sample 2 - `check_existence`
+##### ResourceManagementClient Code Sample 2 - `ResourceGroupsOperations` - `check_existence`
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
@@ -277,7 +278,7 @@ resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATI
 groupExists = resource_client.resource_groups.check_existence(GROUP_NAME)
 ```
 
-##### ResourceManagementClient Code Sample 3 - `delete`
+##### ResourceManagementClient Code Sample 3 - `ResourceGroupsOperations` - `delete`
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
@@ -304,7 +305,7 @@ if(resource_client.resource_groups.check_existence(GROUP_NAME))
     resource_client.resource_groups.delete(GROUP_NAME)
 ```
 
-##### ResourceManagementClient Code Sample 4 - `get`
+##### ResourceManagementClient Code Sample 4 - `ResourceGroupsOperations` - `get`
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
@@ -331,7 +332,7 @@ if(resource_client.resource_groups.check_existence(GROUP_NAME)):
     resource_client.resource_groups.get(GROUP_NAME)
 ```
 
-##### ResourceManagementClient Code Sample 5 - `list`
+##### ResourceManagementClient Code Sample 5 - `ResourceGroupsOperations` - `list`
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
@@ -363,7 +364,7 @@ for resource in resource_client.resource_groups.list():
 
 ### ComputeManagementClient Class
 ```python
-from azure.mgmt.resource import ComputeManagementClient
+from azure.mgmt.compute import ComputeManagementClient
 ```
 
 Provides operations for working with virtual machines.
@@ -399,4 +400,90 @@ The `VirtualMachinesOperations` methods available to manage resources are:
 |`start(resource_group_name, vm_name, custom_headers=None, raw=False, polling=True, **operation_config)`|The operation to start a virtual machine.
 |`update(resource_group_name, vm_name, parameters, custom_headers=None, raw=False, polling=True, **operation_config)`|The operation to update a virtual machine.
 
+Most methods only need 3 parameters:
+* **Resource Group Name** - Which was covered in the ResourceManagementClient section.
+* **Virtual Machine Name** - A String which refers to the VM Name (similar to Resource Group Name but for VMs).
+* **Parameters** - This item expects a JSON String with 5 main Objects.
 
+1. **Location** - Azure Location as explained in ResourceManagementClient Section.
+2. **OS_Profile** - This Object expects the Virtual Machine Name along with it's User and Password. 
+3. **Hardware_Profile** - Here you will specify the Virtual Machine Size. There are several options which
+specify th Number of CPUs, Memory, Storage, Base and Max CPU Performance and Credits banked per hour.
+We will use 'Standard_DS1_v2' for these examples. 
+A full list of vm_size values can be found here: 
+
+   <https://docs.microsoft.com/en-us/azure/virtual-machines/windows/sizes-general>
+
+4. **Storage_Profile** - This Parameter defines the type of Image to be used for that Virtual Machine. The Image Class
+takes 4 parameters: publisher, offer, sku and version.
+5. **Network_Profile** - Specifies the list of resource Ids for the network interfaces associated with the 
+Virtual Machine.
+
+Here is a sample of a Virtual Machine Parameters variable that can be used as the "Parameters" when working with the
+`VirtualMachinesOperations` Class, considering that LOCATION, VM_NAME, USERNAME, PASSWORD AND NIC_ID have been 
+already defined.
+
+```python
+VM_PARAMETERS={
+        'location': 'LOCATION',
+        'os_profile': {
+            'computer_name': 'VM_NAME',
+            'admin_username': 'USERNAME',
+            'admin_password': 'PASSWORD'
+        },
+        'hardware_profile': {
+            'vm_size': 'Standard_DS1_v2'
+        },
+        'storage_profile': {
+            'image_reference': {
+                'publisher': 'Canonical',
+                'offer': 'UbuntuServer',
+                'sku': '16.04.0-LTS',
+                'version': 'latest'
+            },
+        },
+        'network_profile': {
+            'network_interfaces': [{
+                'id': 'NIC_ID',
+            }]
+        },
+    }
+```
+
+##### ComputeManagementClient Code Sample 1 - `VirtualMachinesOperations` - `create_or_update`
+```python
+from azure.common.credentials import ServicePrincipalCredentials
+from azure.mgmt.resource import ResourceManagementClient
+from azure.mgmt.compute import ComputeManagementClient
+
+CLIENT_ID = '<Application ID from Azure Active Directory App Registration Process>'
+SECRET = '<Secret Key from Application configured in Azure>'
+TENANT = '<Directory ID from Azure Active Directory section>'
+
+credentials = ServicePrincipalCredentials(
+    client_id = CLIENT_ID,
+    secret = SECRET,
+    tenant = TENANT
+    )
+
+SUBSCRIPTION_ID = '<Subscription ID from Azure>'
+resource_client = ResourceManagementClient(credentials, SUBSCRIPTION_ID)
+compute_client  = ComputeManagementClient(credentials, SUBSCRIPTION_ID)
+
+GROUP_NAME = 'Cloudmesh Group' 
+LOCATION = 'EastUS'
+resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATION})
+
+
+#@TODO Add compute methods
+
+
+
+```
+
+
+@ToDo - Add NetworkManagementClient Information
+
+@ToDo - Add DiskCreateOption Information 
+
+@ToDo - Add Storage Information 
