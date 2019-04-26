@@ -1,4 +1,4 @@
-# Azure Virtal Machines and Storage Management using Azure Libraries
+## Azure Virtal Machines and Storage Management using Azure Libraries
 | **Joaquin Avila Eggleton**
 | javilaeg@iu.edu
 | *Indiana University*
@@ -43,8 +43,8 @@ Let's get started with Azure Virtual Machine Management using Python.
 In order to manage Azure Virtual Machines the following libraries will need to be imported.
 * ServicePrincipalCredentials
 * ResourceManagementClient
-* ComputeManagementClient
 * NetworkManagementClient
+* ComputeManagementClient
 
 The following sections will dive deeper into each library's capabilities.
 
@@ -143,8 +143,8 @@ credentials = ServicePrincipalCredentials(
 
 ##### Subscription ID
 The "Subscription ID" variable is not needed as part of ServicePrincipalCredentials however it will be required 
-by all Management Classes, which we will be reviewing next `(ResourceManagementClient, ComputeManagementClient and 
-NetworkManagementClient)`.
+by all Management Classes, which we will be reviewing next `(ResourceManagementClient, NetworkManagementClient
+and ComputeManagementClient)`.
 
 The Subscription ID can be located in Azure's control panel by clicking the "All Services" menu. 
 It will load a page with links to different services including one called "Subscriptions". 
@@ -170,8 +170,8 @@ our cloudmesh project.
 3 management clients will need to be initiated in order to create and manage resources. These Management Clients are:
 
 * ResourceManagementClient
-* ComputeManagementClient
 * NetworkManagementClient
+* ComputeManagementClient
 
 ### ResourceManagementClient Class
 ```python
@@ -245,6 +245,8 @@ credentials = ServicePrincipalCredentials(
     )
 
 SUBSCRIPTION_ID = '<Subscription ID from Azure>'
+
+# Management Clients
 resource_client = ResourceManagementClient(credentials, SUBSCRIPTION_ID)
 
 GROUP_NAME = 'Cloudmesh Group' 
@@ -268,6 +270,8 @@ credentials = ServicePrincipalCredentials(
     )
 
 SUBSCRIPTION_ID = '<Subscription ID from Azure>'
+
+# Management Clients
 resource_client = ResourceManagementClient(credentials, SUBSCRIPTION_ID)
 
 GROUP_NAME = 'Cloudmesh Group' 
@@ -294,6 +298,8 @@ credentials = ServicePrincipalCredentials(
     )
 
 SUBSCRIPTION_ID = '<Subscription ID from Azure>'
+
+# Management Clients
 resource_client = ResourceManagementClient(credentials, SUBSCRIPTION_ID)
 
 GROUP_NAME = 'Cloudmesh Group' 
@@ -321,6 +327,8 @@ credentials = ServicePrincipalCredentials(
     )
 
 SUBSCRIPTION_ID = '<Subscription ID from Azure>'
+
+# Management Clients
 resource_client = ResourceManagementClient(credentials, SUBSCRIPTION_ID)
 
 GROUP_NAME = 'Cloudmesh Group' 
@@ -329,7 +337,8 @@ resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATI
 
 # If Resource Group exists - Get Resource Group
 if(resource_client.resource_groups.check_existence(GROUP_NAME)):
-    resource_client.resource_groups.get(GROUP_NAME)
+    delete_async_operation = resource_client.resource_groups.get(GROUP_NAME)
+    delete_async_operation.wait()
 ```
 
 ##### ResourceManagementClient Code Sample 5 - `ResourceGroupsOperations` - `list`
@@ -348,6 +357,8 @@ credentials = ServicePrincipalCredentials(
     )
 
 SUBSCRIPTION_ID = '<Subscription ID from Azure>'
+
+# Management Clients
 resource_client = ResourceManagementClient(credentials, SUBSCRIPTION_ID)
 
 GROUP_NAME = 'Cloudmesh Group' 
@@ -361,6 +372,117 @@ for resource in resource_client.resource_groups.list():
     print("\tLocation: {}".format(resource.location))
     print("\tTags: {}".format(resource.tags))
 ```
+
+### NetworkManagementClient Class
+```python
+from azure.mgmt.network import NetworkManagementClient
+```
+Unlike other Azure python APIs, the networking APIs are explicitly versioned into separage packages. You do not need to import them individually since the package information is specified in the client constructor.
+
+To install the management package with pip use the following:
+```bash
+pip install azure-mgmt-network
+```
+
+To instantiate a NetworkManagementClient you will need two mandatory parameters. 
+* **Credentials** - Refer to ServicePrincipalCredentials section for more details
+* **Subscription ID** - Refer to Subscription ID section for more details
+
+In order to manage a Virtual Machine using the `ComputeManagementClient` you will first need to have a Network Interface.
+The following Code Sample will create a Network Interface using the `NetworkManagementClient`
+The steps to create a Network Interface are as follows:
+
+1. Create a Virtual Network - Once declaring a `NetworkManagementClient` use `virtual_networks.create_or_update` 
+2. Create a Subnet - Once declaring a `NetworkManagementClient` use `subnets.create_or_update` 
+3. Create Network Interface - Once declaring a `NetworkManagementClient` use `network_interfaces.create_or_update` 
+
+> **_NOTE:_** 
+> 
+> Some of NetworkManagementClient operations execute asynchronously such as `create_or_update`. 
+> An asynchronous operation returns an AzureOperationPoller. 
+> We will use result() or wait() while using asynchronous operations.
+
+##### NetworkManagementClient Code Sample  
+```python
+from azure.common.credentials import ServicePrincipalCredentials
+from azure.mgmt.resource import ResourceManagementClient
+from azure.mgmt.network import NetworkManagementClient
+
+CLIENT_ID = '<Application ID from Azure Active Directory App Registration Process>'
+SECRET = '<Secret Key from Application configured in Azure>'
+TENANT = '<Directory ID from Azure Active Directory section>'
+
+credentials = ServicePrincipalCredentials(
+    client_id = CLIENT_ID,
+    secret = SECRET,
+    tenant = TENANT
+    )
+
+SUBSCRIPTION_ID = '<Subscription ID from Azure>'
+
+# Management Clients
+resource_client = ResourceManagementClient(credentials, SUBSCRIPTION_ID)
+network_client  = NetworkManagementClient(credentials, SUBSCRIPTION_ID)
+
+# Group Variables
+GROUP_NAME = 'Cloudmesh Group' 
+LOCATION = 'EastUS'
+resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATION})
+
+# Network Variables
+VNET_NAME       = 'azure-cloudmesh-vnet'
+SUBNET_NAME     = 'azure-cloudmesh-subnet'
+IP_CONFIG_NAME  = 'azure-cloudmesh-ip-config'
+NIC_NAME        = 'azure-cloudmesh-nic'
+
+# Create Network Interface for Virtual Machine
+# Virtual Network
+async_vnet_creation = network_client.virtual_networks.create_or_update(
+    GROUP_NAME,
+    VNET_NAME,
+    {
+        'location': LOCATION,
+        'address_space': {
+            'address_prefixes': ['10.0.0.0/16']
+        }
+    }
+)
+async_vnet_creation.wait()
+
+# Subnet
+async_subnet_creation = network_client.subnets.create_or_update(
+    GROUP_NAME,
+    VNET_NAME,
+    SUBNET_NAME,
+    {'address_prefix': '10.0.0.0/24'}
+)
+subnet_info = async_subnet_creation.result()
+
+# Create Network Interface
+async_nic_creation = network_client.network_interfaces.create_or_update(
+    GROUP_NAME,
+    NIC_NAME,
+    {
+        'location': LOCATION,
+        'ip_configurations': [{
+            'name': IP_CONFIG_NAME,
+            'subnet': {
+                'id': subnet_info.id
+            }
+        }]
+    }
+)
+nic = async_nic_creation.result()
+
+# Nic = NetworkInterface Class - Nic.id will be needed when using ComputeManagementClient
+
+```
+
+> **_NOTE:_** 
+> 
+> Some of ComputeManagementClient operations execute asynchronously such as `create_or_update`. 
+> An asynchronous operation returns an AzureOperationPoller. 
+> We will use result() or wait() while using asynchronous operations.
 
 ### ComputeManagementClient Class
 ```python
@@ -454,8 +576,10 @@ VM_PARAMETERS={
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
+from azure.mgmt.network import NetworkManagementClient
 from azure.mgmt.compute import ComputeManagementClient
 
+# ServicePrincipalCredentials related Variables
 CLIENT_ID = '<Application ID from Azure Active Directory App Registration Process>'
 SECRET = '<Secret Key from Application configured in Azure>'
 TENANT = '<Directory ID from Azure Active Directory section>'
@@ -467,23 +591,126 @@ credentials = ServicePrincipalCredentials(
     )
 
 SUBSCRIPTION_ID = '<Subscription ID from Azure>'
+
+# Management Clients
 resource_client = ResourceManagementClient(credentials, SUBSCRIPTION_ID)
+network_client  = NetworkManagementClient(credentials, SUBSCRIPTION_ID)
 compute_client  = ComputeManagementClient(credentials, SUBSCRIPTION_ID)
 
+# ResourceManagementClient related Variables
 GROUP_NAME = 'Cloudmesh Group' 
 LOCATION = 'EastUS'
+
 resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATION})
 
+# NetworkManagementClient related Variables
+VNET_NAME       = 'azure-cloudmesh-vnet'
+SUBNET_NAME     = 'azure-cloudmesh-subnet'
+IP_CONFIG_NAME  = 'azure-cloudmesh-ip-config'
+NIC_NAME        = 'azure-cloudmesh-nic'
 
-#@TODO Add compute methods
+# Create Network Interface for Virtual Machine
+# Virtual Network
+async_vnet_creation = network_client.virtual_networks.create_or_update(
 
+    GROUP_NAME,
+    VNET_NAME,
+    {
+        'location': LOCATION,
+        'address_space': {
+            'address_prefixes': ['10.0.0.0/16']
+        }
+    }
+)
+async_vnet_creation.wait()
 
+# Subnet
+async_subnet_creation = network_client.subnets.create_or_update(
+    GROUP_NAME,
+    VNET_NAME,
+    SUBNET_NAME,
+    {'address_prefix': '10.0.0.0/24'}
+)
+subnet_info = async_subnet_creation.result()
+
+# Create Network Interface
+async_nic_creation = network_client.network_interfaces.create_or_update(
+    GROUP_NAME,
+    NIC_NAME,
+    {
+        'location': LOCATION,
+        'ip_configurations': [{
+            'name': IP_CONFIG_NAME,
+            'subnet': {
+                'id': subnet_info.id
+            }
+        }]
+    }
+)
+nic = async_nic_creation.result()
+
+# Virtual Machine Parameters
+VM_NAME = 'Cloudmesh Virtual Machine'
+USERNAME = 'cloudmesh'
+PASSWORD = 'cms2019'
+NIC_ID = nic.id
+
+VM_PARAMETERS={
+        'location': LOCATION,
+        'os_profile': {
+            'computer_name': VM_NAME,
+            'admin_username': USERNAME,
+            'admin_password': PASSWORD
+        },
+        'hardware_profile': {
+            'vm_size': 'Standard_DS1_v2'
+        },
+        'storage_profile': {
+            'image_reference': {
+                'publisher': 'Canonical',
+                'offer': 'UbuntuServer',
+                'sku': '16.04.0-LTS',
+                'version': 'latest'
+            },
+        },
+        'network_profile': {
+            'network_interfaces': [{
+                'id': NIC_ID,
+            }]
+        },
+    }
+
+# Create Virtual Machine using the VM_PARAMETERS defined above
+async_vm_creation = compute_client.virtual_machines.create_or_update(GROUP_NAME, VM_NAME, VM_PARAMETERS)
+async_vm_creation.wait()
 
 ```
 
+##### ComputeManagementClient Sample 2 -`VirtualMachinesOperations`-`start, restart, power_off, list_all, list, delete`
+```python
+# Start Virtual Machine
+async_vm_start = compute_client.virtual_machines.start(GROUP_NAME, VM_NAME)
+async_vm_start.wait()
 
-@ToDo - Add NetworkManagementClient Information
+# Restart Virtual Machine
+async_vm_restart = compute_client.virtual_machines.restart(GROUP_NAME, VM_NAME)
+async_vm_restart.wait()
 
-@ToDo - Add DiskCreateOption Information 
+# Stop Virtual Machine
+async_vm_stop = compute_client.virtual_machines.power_off(GROUP_NAME, VM_NAME)
+async_vm_stop.wait()
 
-@ToDo - Add Storage Information 
+# List Virtual Machines in Subscription
+for vm in compute_client.virtual_machines.list_all():
+    print("\tVirtualMachine: {}".format(vm.name))
+
+# List Virtual Machines in Resource Group
+for vm in compute_client.virtual_machines.list(GROUP_NAME):
+    print("\tVirtualMachine: {}".format(vm.name))
+
+# Delete Virtual Machine
+async_vm_delete = compute_client.virtual_machines.delete(GROUP_NAME, VM_NAME)
+async_vm_delete.wait()
+```
+
+
