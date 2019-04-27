@@ -27,19 +27,22 @@ Once we have a good understanding on how to use Azure's Python libraries, we wil
 ## Python Version
 The information provided in this document considers the use of `Python 3.7.2`
  
-## Azure Credentials
+# Virtual Machines 
+Let's get started with Azure Virtual Machine Management using Python.
+
+## Azure Service Principal Credentials
 The first step before you are able to interact with Azure's API is to have your own set of credentials. 
-You can get a free Azure Account if your goal is to learn Azure. 
+You can get a free Azure Account if your goal is to learn Azure.
+Once you have configured an Azure account you will need to follow a few steps to get the credentials that we will use 
+in our next section.
+ 
 The steps to create your credentials can be followed from Microsoft's documentation:
 <https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service -principal-portal>.
 
 Please note that you will need to activate your account within the first 30 days of creation, otherwise you will lose 
 access.
 
-# Virtual Machines 
-Let's get started with Azure Virtual Machine Management using Python.
-
-### Azure Python Libraries 
+### Azure Python Libraries for Managing Virtual Machines
 In order to manage Azure Virtual Machines the following libraries will need to be imported.
 * ServicePrincipalCredentials
 * ResourceManagementClient
@@ -925,5 +928,76 @@ async_disk_update = compute_client.disks.create_or_update(
 )
 async_disk_update.wait()
 ```
+
+# Storage
+Let's get started with Azure Storage Service using Python.
+
+## Azure Credentials for Storage
+In order to use Storage we will need to create a specific storage account within your Azure portal.
+For detailed steps on how to create your storage account please use the link below from Microsoft's documentation:
+<https://docs.microsoft.com/en-us/azure/storage/common/storage-quickstart-create-account?tabs=azure-portal>.
+
+### Storage Account
+We will be using a general purpose v1 storage account, which provides access to the following Azure Storage services: 
+* blobs
+* files
+* queues
+* tables
+
+The only service not provided under v1 storage account is "disks", however we will not be using it. That one is 
+available using a general purpose v2 storage account.
+
+### Scope of this document 
+We will be covering 2 Storage Services in this document (blob and files). 
+
+
+### Installing Azure Storage Blob
+
+Let's start with "Blobs".
+Installation is pretty straightforward using pip. In your terminal or command line type the following:
+```bash
+pip install azure-storage-blob
+```
+
+### BlockBlobService Class
+```python
+from azure.storage.blob import BlockBlobService
+```
+
+The following is an extract from Microsoft's documentation regarding Block Blobs
+
+> **_Extract from Microsoft's documentation_** 
+> 
+> Block blobs let you upload large blobs efficiently.
+> Block blobs are comprised of blocks, each of which is identified by a block ID. 
+> You create or modify a block blob by writing a set of blocks and committing them by their block IDs. 
+> Each block can be a different size, up to a maximum of 100 MB, and a block blob can include up to 50,000 blocks. 
+> The maximum size of a block blob is therefore approximately 4.75 TB (100 MB X 50,000 blocks). 
+> If you are writing a block blob that is no more than 64 MB in size, you can upload it in its entirety with a single 
+> write operation.
+>
+> [Reference link to Microsoft's documentation source ](https://docs.microsoft.com/en-us/python/api/azure-storage-blob/azure.storage.blob.blockblobservice.blockblobservice?view=azure-python)
+
+In order to interact with this service you will need two parameters from your azure storage account:
+* Account Name
+* Account Key 
+
+Make sure to store your access keys securely. Keys can be regenerated regularly for security. Azure actually provides 
+2 keys per storage account which makes it convenient for keeping uninterrupted service while regenerating keys.
+
+##### Storage Connection Configuration Sample
+The following script is the first step to connect and start interacting with the Storage Service.
+
+```python
+from azure.storage.blob import BlockBlobService
+
+ACCOUNT_NAME = '<Account Name from Azure Storage Account>'
+ACCOUNT_KEY = '<Access Key from Azure Storage Account>'
+
+block_blob_service = BlockBlobService(account_name=ACCOUNT_NAME, account_key=ACCOUNT_KEY)
+```
+
+
+
 
 
