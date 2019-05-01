@@ -253,7 +253,7 @@ SUBSCRIPTION_ID = '<Subscription ID from Azure>'
 # Management Clients
 resource_client = ResourceManagementClient(credentials, SUBSCRIPTION_ID)
 
-GROUP_NAME = 'Cloudmesh Group' 
+GROUP_NAME = 'Cloudmesh-Group' 
 LOCATION = 'EastUS'
 resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATION})
 ```
@@ -278,7 +278,7 @@ SUBSCRIPTION_ID = '<Subscription ID from Azure>'
 # Management Clients
 resource_client = ResourceManagementClient(credentials, SUBSCRIPTION_ID)
 
-GROUP_NAME = 'Cloudmesh Group' 
+GROUP_NAME = 'Cloudmesh-Group' 
 LOCATION = 'EastUS'
 resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATION})
 
@@ -306,7 +306,7 @@ SUBSCRIPTION_ID = '<Subscription ID from Azure>'
 # Management Clients
 resource_client = ResourceManagementClient(credentials, SUBSCRIPTION_ID)
 
-GROUP_NAME = 'Cloudmesh Group' 
+GROUP_NAME = 'Cloudmesh-Group' 
 LOCATION = 'EastUS'
 resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATION})
 
@@ -335,7 +335,7 @@ SUBSCRIPTION_ID = '<Subscription ID from Azure>'
 # Management Clients
 resource_client = ResourceManagementClient(credentials, SUBSCRIPTION_ID)
 
-GROUP_NAME = 'Cloudmesh Group' 
+GROUP_NAME = 'Cloudmesh-Group' 
 LOCATION = 'EastUS'
 resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATION})
 
@@ -365,7 +365,7 @@ SUBSCRIPTION_ID = '<Subscription ID from Azure>'
 # Management Clients
 resource_client = ResourceManagementClient(credentials, SUBSCRIPTION_ID)
 
-GROUP_NAME = 'Cloudmesh Group' 
+GROUP_NAME = 'Cloudmesh-Group' 
 LOCATION = 'EastUS'
 resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATION})
 
@@ -429,7 +429,7 @@ resource_client = ResourceManagementClient(credentials, SUBSCRIPTION_ID)
 network_client  = NetworkManagementClient(credentials, SUBSCRIPTION_ID)
 
 # Group Variables
-GROUP_NAME = 'Cloudmesh Group' 
+GROUP_NAME = 'Cloudmesh-Group' 
 LOCATION = 'EastUS'
 resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATION})
 
@@ -548,6 +548,21 @@ Here is a sample of a Virtual Machine Parameters variable that can be used as th
 `VirtualMachinesOperations` Class, considering that LOCATION, VM_NAME, USERNAME, PASSWORD AND NIC_ID have been 
 already defined.
 
+> **_NOTE:_**  
+> 
+> When setting up the Virtual Machine Password please take into consideration the following guidelines.
+> 
+> The supplied password must be between 6-72 characters long and must satisfy at least 3 of password complexity 
+> requirements from the following: 
+> 1) Contains an uppercase character
+> 2) Contains a lowercase character
+> 3) Contains a numeric digit
+> 4) Contains a special character
+> 5) Control characters are not allowed
+>
+> Another important thing to consider is that the Virtual Machine Name **should not** contain spaces.
+
+
 ```python
 VM_PARAMETERS={
         'location': 'LOCATION',
@@ -601,7 +616,7 @@ network_client  = NetworkManagementClient(credentials, SUBSCRIPTION_ID)
 compute_client  = ComputeManagementClient(credentials, SUBSCRIPTION_ID)
 
 # ResourceManagementClient related Variables
-GROUP_NAME = 'Cloudmesh Group' 
+GROUP_NAME = 'Cloudmesh-Group' 
 LOCATION = 'EastUS'
 
 resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATION})
@@ -653,9 +668,9 @@ async_nic_creation = network_client.network_interfaces.create_or_update(
 nic = async_nic_creation.result()
 
 # Virtual Machine Parameters
-VM_NAME = 'Cloudmesh Virtual Machine'
+VM_NAME = 'Cloudmesh-Virtual-Machine'
 USERNAME = 'cloudmesh'
-PASSWORD = 'cms2019'
+PASSWORD = 'Cms2019'
 NIC_ID = nic.id
 
 VM_PARAMETERS={
@@ -776,7 +791,7 @@ network_client  = NetworkManagementClient(credentials, SUBSCRIPTION_ID)
 compute_client  = ComputeManagementClient(credentials, SUBSCRIPTION_ID)
 
 # ResourceManagementClient related Variables
-GROUP_NAME = 'Cloudmesh Group' 
+GROUP_NAME = 'Cloudmesh-Group' 
 LOCATION = 'EastUS'
 
 resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATION})
@@ -828,9 +843,9 @@ async_nic_creation = network_client.network_interfaces.create_or_update(
 nic = async_nic_creation.result()
 
 # Virtual Machine Parameters
-VM_NAME = 'Cloudmesh Virtual Machine'
+VM_NAME = 'Cloudmesh-Virtual-Machine'
 USERNAME = 'cloudmesh'
-PASSWORD = 'cms2019'
+PASSWORD = 'Cms2019'
 NIC_ID = nic.id
 
 VM_PARAMETERS={
