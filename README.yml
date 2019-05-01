@@ -1,0 +1,11 @@
+---
+owner:
+  firstname: Joaquin
+  lastname: Avila Eggleton
+  hid: sp19-516-136
+  community: e516
+  semester: sp19
+project:
+  - title: Azure Virtual Machines and Storage Management
+    url: https://github.com/cloudmesh-community/sp19-516-136/blob/master/project-report/report.md
+    code: TBD
