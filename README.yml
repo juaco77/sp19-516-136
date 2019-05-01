@@ -7,8 +7,11 @@ owner:
   semester: sp19
 project:
   - title: Azure Virtual Machines and Storage Management
-    code vm azure Provider: https://github.com/cloudmesh-community/sp19-516-136/tree/master/project-code/cloudmesh.azure/cloudmesh/azure/api/Provider.py
-    url: https://github.com/cloudmesh-community/sp19-516-136/tree/master/project-code/cloudmesh.azure/README.md
     report: https://github.com/cloudmesh-community/sp19-516-136/blob/master/project-report/report.md
+    - Azure Virtual Machine
+    code vm azure Provider: https://github.com/cloudmesh-community/sp19-516-136/tree/master/project-code/cloudmesh.azure/cloudmesh/azure/api/Provider.py
+    code vm azure pytest: Work in progress
+    code vm azure Example created for the report: https://github.com/cloudmesh-community/sp19-516-136/blob/master/project-code/cloudmesh.azure/cloudmesh/azure/AzureVMExample.py
     code storage azureblob provider: https://github.com/cloudmesh-community/sp19-516-136/blob/master/project-code/cloudmesh.azure/cloudmesh/storage/provider/azureblob/Provider.py
     code storage azureblob pytest: https://github.com/cloudmesh-community/sp19-516-136/blob/master/project-code/cloudmesh.azure/cloudmesh/storage/tests/test_storage_azure.py
+    code storage azureblob Example created for the report: 
