@@ -18,6 +18,10 @@ as well as Storage.
 
 :o: the project is not just about learning, but about developing a multicloud interface to clouds which includes azure and is located at cloudmesh.cloud. This report is not needed and should be integrated in most aspects into cloudmesh-manaual.
 
+However the document is a good example on how to take notes and document how to do certain things with the azure library.
+
+:o: cloudmesh Config() is not used in the examples The inclusion of credetials in the examples must be avoided and replaced with Config() using cloudmesh4.yaml
+
 ## Scope
 
 This document will walk you through every step needed to leverage Azure's Python Libraries
