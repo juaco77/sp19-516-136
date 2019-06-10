@@ -12,10 +12,14 @@
 ---
 
 ## Project Documentation
+
 The purpose of this project is to learn about features available in Azure's Python libraries to manage Virtual Machines
 as well as Storage.
 
+:o: the project is not just about learning, but about developing a multicloud interface to clouds which includes azure and is located at cloudmesh.cloud. This report is not needed and should be integrated in most aspects into cloudmesh-manaual.
+
 ## Scope
+
 This document will walk you through every step needed to leverage Azure's Python Libraries
 to interact with 2 of their Services:
 1) Virtual Machines Management
@@ -25,12 +29,15 @@ Once we have a good understanding on how to use Azure's Python libraries, we wil
 `Provider classes` for Virtual Machines (VM) and Storage.
 
 ## Python Version
+
 The information provided in this document considers the use of `Python 3.7.2`
  
 # Virtual Machines 
+
 Let's get started with Azure Virtual Machine Management using Python.
 
 ## Azure Service Principal Credentials
+
 The first step before you are able to interact with Azure's API is to have your own set of credentials. 
 You can get a free Azure Account if your goal is to learn Azure.
 Once you have configured an Azure account you will need to follow a few steps to get the credentials that we will use 
@@ -43,6 +50,7 @@ Please note that you will need to activate your account within the first 30 days
 access.
 
 ### Azure Python Libraries for Managing Virtual Machines
+
 In order to manage Azure Virtual Machines the following libraries will need to be imported.
 * ServicePrincipalCredentials
 * ResourceManagementClient
@@ -53,6 +61,7 @@ In order to manage Azure Virtual Machines the following libraries will need to b
 The following sections will dive deeper into each library's capabilities.
 
 ### ServicePrincipalCredentials Class
+
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 ```
@@ -65,6 +74,7 @@ privileged user. This is where the Credentials created in the previous step will
 The `ServicePrincipalCredentials` class has two constructors:
 
 ##### ServicePrincipalCredentials Constructor 1
+
 The first one receives the following parameters `(client_id, secret, tenant)`
 
 > **_NOTE:_** 
@@ -82,9 +92,11 @@ The following table maps the credential labels from Azure VS the
 |tenant|Directory ID|
 
 ##### Application ID
+
 This value is generated during the App registrations process in Azure AD while setting up your Azure Credentials.
 
 ##### Directory ID
+
 While setting up your Azure Credentials you will have an Active Directory in your account.
 The Directory ID can be located in Azure Portal by clicking on the "Azure Active Directory" tab. 
 
@@ -96,6 +108,7 @@ the Directory Properties page where you will be able to locate the Directory ID.
 > You may need to scroll down a bit to find the "Properties" submenu under the "Manage" section.
 
 ##### Key
+
 During the Azure Credentials process you will be registering an Application. 
 Part of this registration process will guide you to generate a Key. 
 After you enter the description of the Key, the key value will be displayed. 
@@ -119,6 +132,7 @@ credentials = ServicePrincipalCredentials(
 ```
 
 ##### ServicePrincipalCredentials Constructor 2
+
 The second one includes a cloud environment `(client_id, secret, tenant, cloud_environment)`
 
 The `cloud_environment` represents an Azure Cloud instance.
@@ -129,6 +143,7 @@ The current available `cloud_environment` options are:
 * `AZURE_GERMAN_CLOUD` 
 
 ##### ServicePrincipalCredentials Code Sample 2
+
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from msrestazure.azure_cloud import AZURE_PUBLIC_CLOUD
@@ -146,6 +161,7 @@ credentials = ServicePrincipalCredentials(
 ```
 
 ##### Subscription ID
+
 The "Subscription ID" variable is not needed as part of ServicePrincipalCredentials however it will be required 
 by all Management Classes, which we will be reviewing next `(ResourceManagementClient, NetworkManagementClient
 and ComputeManagementClient)`.
@@ -171,6 +187,7 @@ our cloudmesh project.
 |5 GB of LRS File Storage with 2 million read, 2 million list, and 2 million other file operations|12 months 
 
 ### Management Clients
+
 3 management clients will need to be initiated in order to create and manage resources. These Management Clients are:
 
 * ResourceManagementClient
@@ -178,25 +195,30 @@ our cloudmesh project.
 * ComputeManagementClient
 
 ### ResourceManagementClient Class
+
 ```python
 from azure.mgmt.resource import ResourceManagementClient
 ```
 
 Provides operations for working with resources and resource groups.
 To instantiate a ResourceManagementClient you will need two mandatory parameters. 
+
 * **Credentials** - Refer to ServicePrincipalCredentials section for more details
 * **Subscription ID** - Refer to Subscription ID section for more details
 
-###### Optional parameters are:
+###### Optional parameters are
+
 * **API Version** - API version to use if no profile is provided, or if missing in profile.
 * **Base URL** - Service URL
 * **Profile** - A profile definition, from KnownProfiles to dict.
 
 ##### ResourceManagementClient Code Samples
+
 We will extend the code from `ServicePrincipalCredentials` and incorporate `ResourceManagementClient` to create a resource
 group. 
 
 In this example we will declare 2 new variables:
+
 * **GROUP_NAME** - To identify the resource we are creating. This variable can be used in the future to get a resource 
 by name.
 * **LOCATION** - To indicate the preferred Azure Location.
@@ -234,6 +256,7 @@ The `ResourceGroupsOperations` methods available to manage resources are:
 |`update(resource_group_name, parameters, custom_headers=None, raw=False, **operation_config)`|Updates a resource group. Resource groups can be updated through a simple PATCH operation to a group address. The format of the request is the same as that for creating a resource group. If a field is unspecified, the current value is retained.
 
 ##### ResourceManagementClient Code Sample 1 - `ResourceGroupsOperations` - `create_or_update`
+
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
@@ -259,6 +282,7 @@ resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATI
 ```
 
 ##### ResourceManagementClient Code Sample 2 - `ResourceGroupsOperations` - `check_existence`
+
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
@@ -287,6 +311,7 @@ groupExists = resource_client.resource_groups.check_existence(GROUP_NAME)
 ```
 
 ##### ResourceManagementClient Code Sample 3 - `ResourceGroupsOperations` - `delete`
+
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
@@ -316,6 +341,7 @@ if(resource_client.resource_groups.check_existence(GROUP_NAME))
 ```
 
 ##### ResourceManagementClient Code Sample 4 - `ResourceGroupsOperations` - `get`
+
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
@@ -346,6 +372,7 @@ if(resource_client.resource_groups.check_existence(GROUP_NAME)):
 ```
 
 ##### ResourceManagementClient Code Sample 5 - `ResourceGroupsOperations` - `list`
+
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
@@ -378,6 +405,7 @@ for resource in resource_client.resource_groups.list():
 ```
 
 ### NetworkManagementClient Class
+
 ```python
 from azure.mgmt.network import NetworkManagementClient
 ```
@@ -407,6 +435,7 @@ The steps to create a Network Interface are as follows:
 > We will use result() or wait() while using asynchronous operations.
 
 ##### NetworkManagementClient Code Sample  
+
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
@@ -488,6 +517,7 @@ nic = async_nic_creation.result()
 > We will use result() or wait() while using asynchronous operations.
 
 ### ComputeManagementClient Class
+
 ```python
 from azure.mgmt.compute import ComputeManagementClient
 ```
@@ -591,6 +621,7 @@ VM_PARAMETERS={
 ```
 
 ##### ComputeManagementClient Code Sample 1 - `VirtualMachinesOperations` - `create_or_update`
+
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
@@ -716,6 +747,7 @@ Now you will be able to perform the following operations:
 * Deleting a Virtual Machine
 
 ##### ComputeManagementClient Sample 2 -`VirtualMachinesOperations`-`start, restart, power_off, list_all, list, delete`
+
 ```python
 # Start Virtual Machine
 async_vm_start = compute_client.virtual_machines.start(GROUP_NAME, VM_NAME)
@@ -742,6 +774,7 @@ async_vm_delete = compute_client.virtual_machines.delete(GROUP_NAME, VM_NAME)
 async_vm_delete.wait()
 ```
 ### DiskCreateOption Class
+
 ```python
 from azure.mgmt.compute.models import DiskCreateOption
 ```
@@ -749,6 +782,7 @@ This class is used for disk Management. This helps with security and scalability
 you are able to scale without worrying about limitations associated with storage accounts.
 
 ##### DiskCreateOption Sample - Use case 1: Managed Disks in Virtual Machines
+
 Creation of Managed Disks in Virtual Machines is simplified with implicit creation without specifying all disk details. 
 This happens when creating a VM from an OS image in Azure. The storage_profile parameter has an optional setting 
 "os_disk" so you don't have to create a storage account as a precondition to create a Virtual Machine.
@@ -945,14 +979,17 @@ async_disk_update.wait()
 ```
 
 # Storage
+
 Let's get started with Azure Storage Service using Python.
 
 ## Azure Credentials for Storage
+
 In order to use Storage we will need to create a specific storage account within your Azure portal.
 For detailed steps on how to create your storage account please use the link below from Microsoft's documentation:
 <https://docs.microsoft.com/en-us/azure/storage/common/storage-quickstart-create-account?tabs=azure-portal>.
 
 ### Storage Account
+
 We will be using a general purpose v1 storage account, which provides access to the following Azure Storage services: 
 * blobs
 * files
@@ -963,6 +1000,7 @@ The only service not provided under v1 storage account is "disks", however we wi
 available using a general purpose v2 storage account.
 
 ### Scope of this document 
+
 We will be covering 2 Storage Services in this document (blob and files). 
 
 
@@ -975,6 +1013,7 @@ pip install azure-storage-blob
 ```
 
 ### BlockBlobService Class
+
 ```python
 from azure.storage.blob import BlockBlobService
 ```
@@ -1001,6 +1040,7 @@ Make sure to store your access keys securely. Keys can be regenerated regularly 
 2 keys per storage account which makes it convenient for keeping uninterrupted service while regenerating keys.
 
 ##### Storage Connection Configuration Sample
+
 The following script is the first step to connect and start interacting with the Storage Service.
 
 ```python
