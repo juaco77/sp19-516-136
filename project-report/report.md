@@ -66,6 +66,8 @@ The following sections will dive deeper into each library's capabilities.
 
 ### ServicePrincipalCredentials Class
 
+:o: rewrite the example using cloudmesh Config()
+
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 ```
@@ -121,6 +123,8 @@ That Key is used as `Secret` in the `ServicePrincipalCredentials class`.
 
 ##### ServicePrincipalCredentials Code Sample 1
 
+:o: rewrite the example using cloudmesh Config()
+
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 
@@ -147,6 +151,8 @@ The current available `cloud_environment` options are:
 * `AZURE_GERMAN_CLOUD` 
 
 ##### ServicePrincipalCredentials Code Sample 2
+
+:o: rewrite the example using cloudmesh Config()
 
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
@@ -218,6 +224,8 @@ To instantiate a ResourceManagementClient you will need two mandatory parameters
 
 ##### ResourceManagementClient Code Samples
 
+:o: rewrite the example using cloudmesh Config()
+
 We will extend the code from `ServicePrincipalCredentials` and incorporate `ResourceManagementClient` to create a resource
 group. 
 
@@ -261,6 +269,8 @@ The `ResourceGroupsOperations` methods available to manage resources are:
 
 ##### ResourceManagementClient Code Sample 1 - `ResourceGroupsOperations` - `create_or_update`
 
+:o: rewrite the example using cloudmesh Config()
+
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
@@ -286,6 +296,8 @@ resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATI
 ```
 
 ##### ResourceManagementClient Code Sample 2 - `ResourceGroupsOperations` - `check_existence`
+
+:o: rewrite the example using cloudmesh Config()
 
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
@@ -315,6 +327,8 @@ groupExists = resource_client.resource_groups.check_existence(GROUP_NAME)
 ```
 
 ##### ResourceManagementClient Code Sample 3 - `ResourceGroupsOperations` - `delete`
+
+:o: rewrite the example using cloudmesh Config()
 
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
@@ -346,6 +360,8 @@ if(resource_client.resource_groups.check_existence(GROUP_NAME))
 
 ##### ResourceManagementClient Code Sample 4 - `ResourceGroupsOperations` - `get`
 
+:o: rewrite the example using cloudmesh Config()
+
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
@@ -376,6 +392,8 @@ if(resource_client.resource_groups.check_existence(GROUP_NAME)):
 ```
 
 ##### ResourceManagementClient Code Sample 5 - `ResourceGroupsOperations` - `list`
+
+:o: rewrite the example using cloudmesh Config()
 
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
@@ -439,6 +457,8 @@ The steps to create a Network Interface are as follows:
 > We will use result() or wait() while using asynchronous operations.
 
 ##### NetworkManagementClient Code Sample  
+
+:o: rewrite the example using cloudmesh Config()
 
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
@@ -626,6 +646,8 @@ VM_PARAMETERS={
 
 ##### ComputeManagementClient Code Sample 1 - `VirtualMachinesOperations` - `create_or_update`
 
+:o: rewrite the example using cloudmesh Config()
+
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
@@ -802,6 +824,8 @@ The following sample will depict how to perform multiple operations combining `C
 * Detaching a Data Disk
 * Deallocating the Virtual Machine (in preparation for a disk resize)
 * Increasing the OS disk size
+
+:o: rewrite the example using cloudmesh Config()
 
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
@@ -1047,6 +1071,8 @@ Make sure to store your access keys securely. Keys can be regenerated regularly 
 
 The following script is the first step to connect and start interacting with the Storage Service.
 
+:o: rewrite the example using cloudmesh Config()
+
 ```python
 from azure.storage.blob import BlockBlobService
 
@@ -1067,6 +1093,8 @@ The following example will perform the following tasks.
 7. Download the files from the server.
 8. Delete Container (This will also delete all files inside the container).
 9. Delete local files (Also using Python's `os` class).
+
+:o: rewrite the example using cloudmesh Config()
 
 ```python
 import os
