@@ -2,19 +2,20 @@ import traceback
 
 from cloudmesh.abstractclass.ComputeNodeABC import ComputeNodeABC
 from cloudmesh.management.configuration.config import Config
-from cloudmesh.common.dotdict import dotdict 
+from cloudmesh.common.dotdict import dotdict
 
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
 from azure.mgmt.network import NetworkManagementClient
 from azure.mgmt.compute import ComputeManagementClient
+from azure.mgmt.compute.models import DiskCreateOption
 
 from msrestazure.azure_exceptions import CloudError
 
 # noinspection PyUnusedLocal
-class Provider(ComputeNodeABC):
+class NativeProvider(ComputeNodeABC):
 
-    def __init__(self, name="azure_arm", configuration="~/.cloudmesh/cloudmesh4.yaml"):
+    def __init__(self, name="azure", configuration="~/.cloudmesh/cloudmesh4.yaml"):
         """
         Initializes the provider. The default parameters are read from the configutation
         file that is defined in yaml format.
@@ -22,42 +23,51 @@ class Provider(ComputeNodeABC):
         :param configuration: The location of the yaml configuration file
         """
         self.config = Config()
+
         conf = Config(configuration)["cloudmesh"]
 
         self.user = conf["profile"]
-        self.default = conf["default"]
-        self.group = self.default["group"]
-        self.experiment = self.default["experiment"]
         self.cloud = name
         self.spec = conf["cloud"][name]
-        self.cm = self.spec["cm"]
-        self.cloudtype = self.cm["kind"]
-        deft = dotdict(self.spec["default"])
-        cred = dotdict(self.spec["credentials"])
+        cred = self.spec["credentials"]
+        self.default = self.spec["default"]
 
-        if self.cloudtype == 'azure':
-            credentials = ServicePrincipalCredentials(
-                client_id = cred['AZURE_APPLICATION_ID'],
-                secret = cred['AZURE_SECRET_KEY'],
-                tenant = cred['AZURE_TENANT_ID']
+        # ServicePrincipalCredentials related Variables to configure in cloudmesh4.yaml file
+        # AZURE_APPLICATION_ID = '<Application ID from Azure Active Directory App Registration Process>'
+        # AZURE_SECRET_KEY = '<Secret Key from Application configured in Azure>'
+        # AZURE_TENANT_ID = '<Directory ID from Azure Active Directory section>'
+
+        credentials = ServicePrincipalCredentials(
+            client_id = cred['AZURE_APPLICATION_ID'],
+            secret = cred['AZURE_SECRET_KEY'],
+            tenant = cred['AZURE_TENANT_ID']
             )
+
+        SUBSCRIPTION_ID = cred['AZURE_SUBSCRIPTION_ID']
+
+        # Management Clients
+        resource_client = ResourceManagementClient(credentials, SUBSCRIPTION_ID)
+        compute_client = ComputeManagementClient(credentials, SUBSCRIPTION_ID)
+        network_client = NetworkManagementClient(credentials, SUBSCRIPTION_ID)
+
+        # Azure Resource Group
+        GROUP_NAME = self.default["resource_group"]
 
         # Azure Datacenter Region
         LOCATION = cred["AZURE_REGION"]
 
-        # Azure Resource Group
-        GROUP_NAME = self.group
+        # NetworkManagementClient related Variables
+        VNET_NAME       = self.default["network"]
+        SUBNET_NAME     = self.default["subnet"]
+        IP_CONFIG_NAME  = 'azure-cloudmesh-ip-config'
+        NIC_NAME        = 'azure-cloudmesh-nic'
 
-        # Azure Network
-        VNET_NAME = cred["AZURE_VNET"]
-        SUBNET_NAME = cred["AZURE_SUBNET"]
+
+
 
         # Azure VM Storage details
         OS_DISK_NAME = cred["AZURE_VM_DISK_NAME"]
 
-        # Azure VM Network and Machine details
-        IP_CONFIG_NAME = cred["AZURE_VM_IP_CONFIG"]
-        NIC_NAME = cred["AZURE_VM_NIC"]
         USERNAME = cred["AZURE_VM_USER"]
         PASSWORD = cred["AZURE_VM_PASSWORD"]
         VM_NAME = cred["AZURE_VM_NAME"]
@@ -78,18 +88,16 @@ class Provider(ComputeNodeABC):
             }
         }
 
-        resource_client = ResourceManagementClient(credentials, cred.AZURE_SUBSCRIPTION_ID)
-        compute_client = ComputeManagementClient(credentials, cred.AZURE_SUBSCRIPTION_ID)
-        network_client = NetworkManagementClient(credentials, cred.AZURE_SUBSCRIPTION_ID)
+
 
         # Create Resource group
         print('\nCreate Azure Virtual Machine Resource Group')
         resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATION})
 
-try:
-    nic = create_nic()
-except CloudError:
-    print('A VM operation failed:\n{}'.format(traceback.format_exc()))
+    try:
+        nic = create_nic()
+    except CloudError:
+        print('A VM operation failed:\n{}'.format(traceback.format_exc()))
 
     def start(self, groupName=None, vmName=None):
         """
@@ -370,5 +378,38 @@ except CloudError:
         if lst is not None:
             for entry in lst:
                 d[entry[id]] = entry
+        return d
+
+
+    def update_dict(self, elements, func=None):
+        # this is an internal function for building dict object
+        d = []
+        for element in elements:
+            entry = element.__dict__
+            entry["cm"] = {
+                "kind": "cloud",
+                "cloud": self.cloud,
+                "name": element.name
+            }
+            element.properties = element.properties.__dict__
+            entry["cm"]["created"] = \
+                element.properties["creation_time"].isoformat()[0]
+            entry["cm"]["updated"] = \
+                element.properties["last_modified"].isoformat()[0]
+            entry["cm"]["size"] = element.properties["content_length"]
+            del element.properties["copy"]
+            del element.properties["lease"]
+            del element.properties["content_settings"]
+            del element.properties["creation_time"]
+            del element.properties["last_modified"]
+            if func == 'delete':
+                entry["cm"]["status"] = "deleted"
+            else:
+                entry["cm"]["status"] = "exists"
+            if element.properties["deleted_time"] is not None:
+                entry["cm"]["deleted"] = element.properties[
+                    "deleted_time"].isoformat()
+                del element.properties["deleted_time"]
+            d.append(entry)
         return d
 
