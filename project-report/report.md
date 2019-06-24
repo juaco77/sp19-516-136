@@ -14,7 +14,7 @@
 ## Project Documentation
 
 The purpose of this project is to learn about features available in Azure's Python libraries to manage Virtual Machines
-as well as Storage.
+as well as Storage using Cloudmesh.
 
 :o: the project is not just about learning, but about developing a multicloud interface to clouds which includes azure and is located at cloudmesh.cloud. This report is not needed and should be integrated in most aspects into cloudmesh-manaual.
 
@@ -62,26 +62,50 @@ In order to manage Azure Virtual Machines the following libraries will need to b
 * ComputeManagementClient
 * DiskCreateOption
 
-The following sections will dive deeper into each library's capabilities.
+### Managing credentials in Cloudmesh
 
-### ServicePrincipalCredentials Class
+Cloudmesh uses a yaml file called from which various clouds settings can be managed.
 
-:o: rewrite the example using cloudmesh Config()
+Credentials should be set in the yaml file and should never be included as part of the code.
+The following yaml sample depicts the Cloud section for Azure's compute configuration, which will be used by our python
+code related to Virtual Machines Management.
 
-```python
-from azure.common.credentials import ServicePrincipalCredentials
+```yaml
+   cloudmesh:
+     ...
+     cloud:
+       ...
+       azure:
+         cm:
+           active: True
+           heading: Azure
+           host: azure.microsoft.com
+           label: Azure
+           kind: azure
+           version: 'latest'
+           service: compute
+         default:
+           image: 'linux:Canonical:UbuntuServer:16.04-LTS:latest'
+           image2: 'windows:MicrosoftWindowsServer:WindowsServer:2016-Datacenter:latest'
+           size: 'Basic_A0'
+           resource_group: 'cloudmesh'
+           storage_account: 'cmdrive'
+           network: 'cmnetwork' 
+           subnet: 'cmsubnet'
+           blob_container: 'vhds'
+           AZURE_VM_IP_CONFIG: 'cloudmesh-ip-config'
+           AZURE_VM_NIC: 'cloudmesh-nic'
+           AZURE_VM_DISK_NAME: 'cloudmesh-os-disk'
+           AZURE_VM_USER: TBD
+           AZURE_VM_PASSWORD: TBD
+           AZURE_VM_NAME: 'cloudmeshVM'
+         credentials:
+           AZURE_TENANT_ID: 'xxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+           AZURE_SUBSCRIPTION_ID: 'xxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+           AZURE_APPLICATION_ID: 'xxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+           AZURE_SECRET_KEY: TBD
+           AZURE_REGION: 'eastus'           
 ```
-
-The concept of Service Principal in Azure allows us to store credentials securely in a configuration file, the registry, 
-or Azure KeyVault. 
-This helps automated tools that will use Azure Services (like **Cloudmesh**) interact as applications and not a fully 
-privileged user. This is where the Credentials created in the previous step will be used.
-
-The `ServicePrincipalCredentials` class has two constructors:
-
-##### ServicePrincipalCredentials Constructor 1
-
-The first one receives the following parameters `(client_id, secret, tenant)`
 
 > **_NOTE:_** 
 > 
@@ -89,13 +113,13 @@ The first one receives the following parameters `(client_id, secret, tenant)`
 > setting up your Azure credentials. 
 
 The following table maps the credential labels from Azure VS the 
-`ServicePrincipalCredentials class` parameters.
+`ServicePrincipalCredentials class` parameters and the Parameter Value in Cloudmesh's YAML file.
 
-|ServicePrincipalCredentials parameters|Azure Label|
-|--------------------|-------------|
-|client_id|Application ID| 
-|secret|Key|
-|tenant|Directory ID|
+|ServicePrincipalCredentials parameters|Azure Label|Cloudmesh YAML|
+|--------------------|-------------|-------------|
+|client_id|Application ID|AZURE_APPLICATION_ID|
+|secret|Key|AZURE_SECRET_KEY|
+|tenant|Directory ID|AZURE_TENANT_ID|
 
 ##### Application ID
 
@@ -121,22 +145,57 @@ After you enter the description of the Key, the key value will be displayed.
 This is the value that you will need to store securely since you will no longer be able to retrieve it later. 
 That Key is used as `Secret` in the `ServicePrincipalCredentials class`.
 
-##### ServicePrincipalCredentials Code Sample 1
+
+
+
+A more detailed information about cloudmesh's configuration yaml file [can be found here](https://cloudmesh.github.io/cloudmesh-manual/configuration/configuration.html)
+
+
+
+
+The following sections will dive deeper into each library's capabilities.
+
+### ServicePrincipalCredentials Class
 
 :o: rewrite the example using cloudmesh Config()
 
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
+```
 
-CLIENT_ID = '<Application ID from Azure Active Directory App Registration Process>'
-SECRET = '<Secret Key from Application configured in Azure>'
-TENANT = '<Directory ID from Azure Active Directory section>'
+The concept of Service Principal in Azure allows us to store credentials securely in a configuration file, the registry, 
+or Azure KeyVault. 
+This helps automated tools that will use Azure Services (like **Cloudmesh**) interact as applications and not a fully 
+privileged user. This is where the Credentials created in the previous step will be used.
+
+The `ServicePrincipalCredentials` class has two constructors:
+
+##### ServicePrincipalCredentials Constructor 1
+
+The first one receives the following parameters `(client_id, secret, tenant)`
+
+##### ServicePrincipalCredentials Code Sample 1
+
+```python
+from azure.common.credentials import ServicePrincipalCredentials
+from cloudmesh.management.configuration.config import Config
+
+configuration = "~/.cloudmesh/cloudmesh4.yaml"
+
+conf = Config(configuration)["cloudmesh"]
+spec = conf["cloud"]["azure"]
+cred = spec["credentials"]
+
+# ServicePrincipalCredentials related Variables to configure in cloudmesh4.yaml file
+# AZURE_APPLICATION_ID = '<Application ID from Azure Active Directory App Registration Process>'
+# AZURE_SECRET_KEY = '<Secret Key from Application configured in Azure>'
+# AZURE_TENANT_ID = '<Directory ID from Azure Active Directory section>'
 
 credentials = ServicePrincipalCredentials(
-    client_id = CLIENT_ID,
-    secret = SECRET,
-    tenant = TENANT
-)
+    client_id = cred['AZURE_APPLICATION_ID'],
+    secret = cred['AZURE_SECRET_KEY'],
+    tenant = cred['AZURE_TENANT_ID']
+    )
 ```
 
 ##### ServicePrincipalCredentials Constructor 2
@@ -152,22 +211,28 @@ The current available `cloud_environment` options are:
 
 ##### ServicePrincipalCredentials Code Sample 2
 
-:o: rewrite the example using cloudmesh Config()
-
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from msrestazure.azure_cloud import AZURE_PUBLIC_CLOUD
+from cloudmesh.management.configuration.config import Config
 
-CLIENT_ID = '<Application ID from Azure Active Directory App Registration Process>'
-SECRET = '<Secret Key from Application configured in Azure>'
-TENANT = '<Directory ID from Azure Active Directory section>'
+configuration = "~/.cloudmesh/cloudmesh4.yaml"
+
+conf = Config(configuration)["cloudmesh"]
+spec = conf["cloud"]["azure"]
+cred = spec["credentials"]
+
+# ServicePrincipalCredentials related Variables to configure in cloudmesh4.yaml file
+# AZURE_APPLICATION_ID = '<Application ID from Azure Active Directory App Registration Process>'
+# AZURE_SECRET_KEY = '<Secret Key from Application configured in Azure>'
+# AZURE_TENANT_ID = '<Directory ID from Azure Active Directory section>'
 
 credentials = ServicePrincipalCredentials(
-    client_id = CLIENT_ID,
-    secret = SECRET,
-    tenant = TENANT,
+    client_id = cred['AZURE_APPLICATION_ID'],
+    secret = cred['AZURE_SECRET_KEY'],
+    tenant = cred['AZURE_TENANT_ID'],
     cloud_environment = AZURE_PUBLIC_CLOUD
-)
+    )
 ```
 
 ##### Subscription ID
@@ -224,8 +289,6 @@ To instantiate a ResourceManagementClient you will need two mandatory parameters
 
 ##### ResourceManagementClient Code Samples
 
-:o: rewrite the example using cloudmesh Config()
-
 We will extend the code from `ServicePrincipalCredentials` and incorporate `ResourceManagementClient` to create a resource
 group. 
 
@@ -269,57 +332,79 @@ The `ResourceGroupsOperations` methods available to manage resources are:
 
 ##### ResourceManagementClient Code Sample 1 - `ResourceGroupsOperations` - `create_or_update`
 
-:o: rewrite the example using cloudmesh Config()
-
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
+from cloudmesh.management.configuration.config import Config
 
-CLIENT_ID = '<Application ID from Azure Active Directory App Registration Process>'
-SECRET = '<Secret Key from Application configured in Azure>'
-TENANT = '<Directory ID from Azure Active Directory section>'
+configuration = "~/.cloudmesh/cloudmesh4.yaml"
+
+conf = Config(configuration)["cloudmesh"]
+spec = conf["cloud"]["azure"]
+cred = spec["credentials"]
+default = spec["default"]
+
+# ServicePrincipalCredentials related Variables to configure in cloudmesh4.yaml file
+# AZURE_APPLICATION_ID = '<Application ID from Azure Active Directory App Registration Process>'
+# AZURE_SECRET_KEY = '<Secret Key from Application configured in Azure>'
+# AZURE_TENANT_ID = '<Directory ID from Azure Active Directory section>'
 
 credentials = ServicePrincipalCredentials(
-    client_id = CLIENT_ID,
-    secret = SECRET,
-    tenant = TENANT
+    client_id = cred['AZURE_APPLICATION_ID'],
+    secret = cred['AZURE_SECRET_KEY'],
+    tenant = cred['AZURE_TENANT_ID']
     )
-
-SUBSCRIPTION_ID = '<Subscription ID from Azure>'
+    
+SUBSCRIPTION_ID = cred['AZURE_SUBSCRIPTION_ID']
 
 # Management Clients
 resource_client = ResourceManagementClient(credentials, SUBSCRIPTION_ID)
 
-GROUP_NAME = 'Cloudmesh-Group' 
-LOCATION = 'EastUS'
+# Azure Resource Group
+GROUP_NAME      = default["resource_group"]
+
+# Azure Datacenter Region
+LOCATION        = cred["AZURE_REGION"]
+
 resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATION})
 ```
 
 ##### ResourceManagementClient Code Sample 2 - `ResourceGroupsOperations` - `check_existence`
 
-:o: rewrite the example using cloudmesh Config()
-
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
+from cloudmesh.management.configuration.config import Config
 
-CLIENT_ID = '<Application ID from Azure Active Directory App Registration Process>'
-SECRET = '<Secret Key from Application configured in Azure>'
-TENANT = '<Directory ID from Azure Active Directory section>'
+configuration = "~/.cloudmesh/cloudmesh4.yaml"
+
+conf = Config(configuration)["cloudmesh"]
+spec = conf["cloud"]["azure"]
+cred = spec["credentials"]
+default = spec["default"]
+
+# ServicePrincipalCredentials related Variables to configure in cloudmesh4.yaml file
+# AZURE_APPLICATION_ID = '<Application ID from Azure Active Directory App Registration Process>'
+# AZURE_SECRET_KEY = '<Secret Key from Application configured in Azure>'
+# AZURE_TENANT_ID = '<Directory ID from Azure Active Directory section>'
 
 credentials = ServicePrincipalCredentials(
-    client_id = CLIENT_ID,
-    secret = SECRET,
-    tenant = TENANT
+    client_id = cred['AZURE_APPLICATION_ID'],
+    secret = cred['AZURE_SECRET_KEY'],
+    tenant = cred['AZURE_TENANT_ID']
     )
-
-SUBSCRIPTION_ID = '<Subscription ID from Azure>'
+    
+SUBSCRIPTION_ID = cred['AZURE_SUBSCRIPTION_ID']
 
 # Management Clients
 resource_client = ResourceManagementClient(credentials, SUBSCRIPTION_ID)
 
-GROUP_NAME = 'Cloudmesh-Group' 
-LOCATION = 'EastUS'
+# Azure Resource Group
+GROUP_NAME      = default["resource_group"]
+
+# Azure Datacenter Region
+LOCATION        = cred["AZURE_REGION"]
+
 resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATION})
 
 # groupExists is a Boolean; will return true if resource group exists and false if it does not.
@@ -328,29 +413,40 @@ groupExists = resource_client.resource_groups.check_existence(GROUP_NAME)
 
 ##### ResourceManagementClient Code Sample 3 - `ResourceGroupsOperations` - `delete`
 
-:o: rewrite the example using cloudmesh Config()
-
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
+from cloudmesh.management.configuration.config import Config
 
-CLIENT_ID = '<Application ID from Azure Active Directory App Registration Process>'
-SECRET = '<Secret Key from Application configured in Azure>'
-TENANT = '<Directory ID from Azure Active Directory section>'
+configuration = "~/.cloudmesh/cloudmesh4.yaml"
+
+conf = Config(configuration)["cloudmesh"]
+spec = conf["cloud"]["azure"]
+cred = spec["credentials"]
+default = spec["default"]
+
+# ServicePrincipalCredentials related Variables to configure in cloudmesh4.yaml file
+# AZURE_APPLICATION_ID = '<Application ID from Azure Active Directory App Registration Process>'
+# AZURE_SECRET_KEY = '<Secret Key from Application configured in Azure>'
+# AZURE_TENANT_ID = '<Directory ID from Azure Active Directory section>'
 
 credentials = ServicePrincipalCredentials(
-    client_id = CLIENT_ID,
-    secret = SECRET,
-    tenant = TENANT
+    client_id = cred['AZURE_APPLICATION_ID'],
+    secret = cred['AZURE_SECRET_KEY'],
+    tenant = cred['AZURE_TENANT_ID']
     )
-
-SUBSCRIPTION_ID = '<Subscription ID from Azure>'
+    
+SUBSCRIPTION_ID = cred['AZURE_SUBSCRIPTION_ID']
 
 # Management Clients
 resource_client = ResourceManagementClient(credentials, SUBSCRIPTION_ID)
 
-GROUP_NAME = 'Cloudmesh-Group' 
-LOCATION = 'EastUS'
+# Azure Resource Group
+GROUP_NAME      = default["resource_group"]
+
+# Azure Datacenter Region
+LOCATION        = cred["AZURE_REGION"]
+
 resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATION})
 
 # If Resource Group exists - Delete Resource Group
@@ -360,29 +456,40 @@ if(resource_client.resource_groups.check_existence(GROUP_NAME))
 
 ##### ResourceManagementClient Code Sample 4 - `ResourceGroupsOperations` - `get`
 
-:o: rewrite the example using cloudmesh Config()
-
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
+from cloudmesh.management.configuration.config import Config
 
-CLIENT_ID = '<Application ID from Azure Active Directory App Registration Process>'
-SECRET = '<Secret Key from Application configured in Azure>'
-TENANT = '<Directory ID from Azure Active Directory section>'
+configuration = "~/.cloudmesh/cloudmesh4.yaml"
+
+conf = Config(configuration)["cloudmesh"]
+spec = conf["cloud"]["azure"]
+cred = spec["credentials"]
+default = spec["default"]
+
+# ServicePrincipalCredentials related Variables to configure in cloudmesh4.yaml file
+# AZURE_APPLICATION_ID = '<Application ID from Azure Active Directory App Registration Process>'
+# AZURE_SECRET_KEY = '<Secret Key from Application configured in Azure>'
+# AZURE_TENANT_ID = '<Directory ID from Azure Active Directory section>'
 
 credentials = ServicePrincipalCredentials(
-    client_id = CLIENT_ID,
-    secret = SECRET,
-    tenant = TENANT
+    client_id = cred['AZURE_APPLICATION_ID'],
+    secret = cred['AZURE_SECRET_KEY'],
+    tenant = cred['AZURE_TENANT_ID']
     )
-
-SUBSCRIPTION_ID = '<Subscription ID from Azure>'
+    
+SUBSCRIPTION_ID = cred['AZURE_SUBSCRIPTION_ID']
 
 # Management Clients
 resource_client = ResourceManagementClient(credentials, SUBSCRIPTION_ID)
 
-GROUP_NAME = 'Cloudmesh-Group' 
-LOCATION = 'EastUS'
+# Azure Resource Group
+GROUP_NAME      = default["resource_group"]
+
+# Azure Datacenter Region
+LOCATION        = cred["AZURE_REGION"]
+
 resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATION})
 
 # If Resource Group exists - Get Resource Group
@@ -393,29 +500,40 @@ if(resource_client.resource_groups.check_existence(GROUP_NAME)):
 
 ##### ResourceManagementClient Code Sample 5 - `ResourceGroupsOperations` - `list`
 
-:o: rewrite the example using cloudmesh Config()
-
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
+from cloudmesh.management.configuration.config import Config
 
-CLIENT_ID = '<Application ID from Azure Active Directory App Registration Process>'
-SECRET = '<Secret Key from Application configured in Azure>'
-TENANT = '<Directory ID from Azure Active Directory section>'
+configuration = "~/.cloudmesh/cloudmesh4.yaml"
+
+conf = Config(configuration)["cloudmesh"]
+spec = conf["cloud"]["azure"]
+cred = spec["credentials"]
+default = spec["default"]
+
+# ServicePrincipalCredentials related Variables to configure in cloudmesh4.yaml file
+# AZURE_APPLICATION_ID = '<Application ID from Azure Active Directory App Registration Process>'
+# AZURE_SECRET_KEY = '<Secret Key from Application configured in Azure>'
+# AZURE_TENANT_ID = '<Directory ID from Azure Active Directory section>'
 
 credentials = ServicePrincipalCredentials(
-    client_id = CLIENT_ID,
-    secret = SECRET,
-    tenant = TENANT
+    client_id = cred['AZURE_APPLICATION_ID'],
+    secret = cred['AZURE_SECRET_KEY'],
+    tenant = cred['AZURE_TENANT_ID']
     )
-
-SUBSCRIPTION_ID = '<Subscription ID from Azure>'
+    
+SUBSCRIPTION_ID = cred['AZURE_SUBSCRIPTION_ID']
 
 # Management Clients
 resource_client = ResourceManagementClient(credentials, SUBSCRIPTION_ID)
 
-GROUP_NAME = 'Cloudmesh-Group' 
-LOCATION = 'EastUS'
+# Azure Resource Group
+GROUP_NAME      = default["resource_group"]
+
+# Azure Datacenter Region
+LOCATION        = cred["AZURE_REGION"]
+
 resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATION})
 
 # List Resource Groups
@@ -458,39 +576,49 @@ The steps to create a Network Interface are as follows:
 
 ##### NetworkManagementClient Code Sample  
 
-:o: rewrite the example using cloudmesh Config()
-
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
 from azure.mgmt.network import NetworkManagementClient
+from cloudmesh.management.configuration.config import Config
 
-CLIENT_ID = '<Application ID from Azure Active Directory App Registration Process>'
-SECRET = '<Secret Key from Application configured in Azure>'
-TENANT = '<Directory ID from Azure Active Directory section>'
+configuration = "~/.cloudmesh/cloudmesh4.yaml"
+
+conf = Config(configuration)["cloudmesh"]
+spec = conf["cloud"]["azure"]
+cred = spec["credentials"]
+default = spec["default"]
+
+# ServicePrincipalCredentials related Variables to configure in cloudmesh4.yaml file
+# AZURE_APPLICATION_ID = '<Application ID from Azure Active Directory App Registration Process>'
+# AZURE_SECRET_KEY = '<Secret Key from Application configured in Azure>'
+# AZURE_TENANT_ID = '<Directory ID from Azure Active Directory section>'
 
 credentials = ServicePrincipalCredentials(
-    client_id = CLIENT_ID,
-    secret = SECRET,
-    tenant = TENANT
+    client_id = cred['AZURE_APPLICATION_ID'],
+    secret = cred['AZURE_SECRET_KEY'],
+    tenant = cred['AZURE_TENANT_ID']
     )
-
-SUBSCRIPTION_ID = '<Subscription ID from Azure>'
+    
+SUBSCRIPTION_ID = cred['AZURE_SUBSCRIPTION_ID']
 
 # Management Clients
 resource_client = ResourceManagementClient(credentials, SUBSCRIPTION_ID)
 network_client  = NetworkManagementClient(credentials, SUBSCRIPTION_ID)
 
-# Group Variables
-GROUP_NAME = 'Cloudmesh-Group' 
-LOCATION = 'EastUS'
+# Azure Resource Group
+GROUP_NAME      = default["resource_group"]
+
+# Azure Datacenter Region
+LOCATION        = cred["AZURE_REGION"]
+
 resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATION})
 
-# Network Variables
-VNET_NAME       = 'azure-cloudmesh-vnet'
-SUBNET_NAME     = 'azure-cloudmesh-subnet'
-IP_CONFIG_NAME  = 'azure-cloudmesh-ip-config'
-NIC_NAME        = 'azure-cloudmesh-nic'
+# NetworkManagementClient related Variables pulled from Cloudmesh YAML file
+VNET_NAME       = default["network"]
+SUBNET_NAME     = default["subnet"]
+IP_CONFIG_NAME  = default["AZURE_VM_IP_CONFIG"]
+NIC_NAME        = default["AZURE_VM_NIC"]
 
 # Create Network Interface for Virtual Machine
 # Virtual Network
@@ -646,48 +774,55 @@ VM_PARAMETERS={
 
 ##### ComputeManagementClient Code Sample 1 - `VirtualMachinesOperations` - `create_or_update`
 
-:o: rewrite the example using cloudmesh Config()
-
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
 from azure.mgmt.network import NetworkManagementClient
 from azure.mgmt.compute import ComputeManagementClient
+from cloudmesh.management.configuration.config import Config
 
-# ServicePrincipalCredentials related Variables
-CLIENT_ID = '<Application ID from Azure Active Directory App Registration Process>'
-SECRET = '<Secret Key from Application configured in Azure>'
-TENANT = '<Directory ID from Azure Active Directory section>'
+configuration = "~/.cloudmesh/cloudmesh4.yaml"
+
+conf = Config(configuration)["cloudmesh"]
+spec = conf["cloud"]["azure"]
+cred = spec["credentials"]
+default = spec["default"]
+
+# ServicePrincipalCredentials related Variables to configure in cloudmesh4.yaml file
+# AZURE_APPLICATION_ID = '<Application ID from Azure Active Directory App Registration Process>'
+# AZURE_SECRET_KEY = '<Secret Key from Application configured in Azure>'
+# AZURE_TENANT_ID = '<Directory ID from Azure Active Directory section>'
 
 credentials = ServicePrincipalCredentials(
-    client_id = CLIENT_ID,
-    secret = SECRET,
-    tenant = TENANT
+    client_id = cred['AZURE_APPLICATION_ID'],
+    secret = cred['AZURE_SECRET_KEY'],
+    tenant = cred['AZURE_TENANT_ID']
     )
-
-SUBSCRIPTION_ID = '<Subscription ID from Azure>'
+    
+SUBSCRIPTION_ID = cred['AZURE_SUBSCRIPTION_ID']
 
 # Management Clients
 resource_client = ResourceManagementClient(credentials, SUBSCRIPTION_ID)
 network_client  = NetworkManagementClient(credentials, SUBSCRIPTION_ID)
 compute_client  = ComputeManagementClient(credentials, SUBSCRIPTION_ID)
 
-# ResourceManagementClient related Variables
-GROUP_NAME = 'Cloudmesh-Group' 
-LOCATION = 'EastUS'
+# Azure Resource Group
+GROUP_NAME      = default["resource_group"]
+
+# Azure Datacenter Region
+LOCATION        = cred["AZURE_REGION"]
 
 resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATION})
 
-# NetworkManagementClient related Variables
-VNET_NAME       = 'azure-cloudmesh-vnet'
-SUBNET_NAME     = 'azure-cloudmesh-subnet'
-IP_CONFIG_NAME  = 'azure-cloudmesh-ip-config'
-NIC_NAME        = 'azure-cloudmesh-nic'
+# NetworkManagementClient related Variables pulled from Cloudmesh YAML file
+VNET_NAME       = default["network"]
+SUBNET_NAME     = default["subnet"]
+IP_CONFIG_NAME  = default["AZURE_VM_IP_CONFIG"]
+NIC_NAME        = default["AZURE_VM_NIC"]
 
 # Create Network Interface for Virtual Machine
 # Virtual Network
 async_vnet_creation = network_client.virtual_networks.create_or_update(
-
     GROUP_NAME,
     VNET_NAME,
     {
@@ -724,11 +859,12 @@ async_nic_creation = network_client.network_interfaces.create_or_update(
 )
 nic = async_nic_creation.result()
 
-# Virtual Machine Parameters
-VM_NAME = 'Cloudmesh-Virtual-Machine'
-USERNAME = 'cloudmesh'
-PASSWORD = 'Cms2019'
-NIC_ID = nic.id
+# Azure VM Storage details
+OS_DISK_NAME    = default["AZURE_VM_DISK_NAME"]
+USERNAME        = default["AZURE_VM_USER"]
+PASSWORD        = default["AZURE_VM_PASSWORD"]
+VM_NAME         = default["AZURE_VM_NAME"]
+NIC_ID          = nic.id
 
 VM_PARAMETERS={
         'location': LOCATION,
@@ -825,49 +961,56 @@ The following sample will depict how to perform multiple operations combining `C
 * Deallocating the Virtual Machine (in preparation for a disk resize)
 * Increasing the OS disk size
 
-:o: rewrite the example using cloudmesh Config()
-
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 from azure.mgmt.resource import ResourceManagementClient
 from azure.mgmt.network import NetworkManagementClient
 from azure.mgmt.compute import ComputeManagementClient
 from azure.mgmt.compute.models import DiskCreateOption
+from cloudmesh.management.configuration.config import Config
 
-# ServicePrincipalCredentials related Variables
-CLIENT_ID = '<Application ID from Azure Active Directory App Registration Process>'
-SECRET = '<Secret Key from Application configured in Azure>'
-TENANT = '<Directory ID from Azure Active Directory section>'
+configuration = "~/.cloudmesh/cloudmesh4.yaml"
+
+conf = Config(configuration)["cloudmesh"]
+spec = conf["cloud"]["azure"]
+cred = spec["credentials"]
+default = spec["default"]
+
+# ServicePrincipalCredentials related Variables to configure in cloudmesh4.yaml file
+# AZURE_APPLICATION_ID = '<Application ID from Azure Active Directory App Registration Process>'
+# AZURE_SECRET_KEY = '<Secret Key from Application configured in Azure>'
+# AZURE_TENANT_ID = '<Directory ID from Azure Active Directory section>'
 
 credentials = ServicePrincipalCredentials(
-    client_id = CLIENT_ID,
-    secret = SECRET,
-    tenant = TENANT
+    client_id = cred['AZURE_APPLICATION_ID'],
+    secret = cred['AZURE_SECRET_KEY'],
+    tenant = cred['AZURE_TENANT_ID']
     )
-
-SUBSCRIPTION_ID = '<Subscription ID from Azure>'
+    
+SUBSCRIPTION_ID = cred['AZURE_SUBSCRIPTION_ID']
 
 # Management Clients
 resource_client = ResourceManagementClient(credentials, SUBSCRIPTION_ID)
 network_client  = NetworkManagementClient(credentials, SUBSCRIPTION_ID)
 compute_client  = ComputeManagementClient(credentials, SUBSCRIPTION_ID)
 
-# ResourceManagementClient related Variables
-GROUP_NAME = 'Cloudmesh-Group' 
-LOCATION = 'EastUS'
+# Azure Resource Group
+GROUP_NAME      = default["resource_group"]
+
+# Azure Datacenter Region
+LOCATION        = cred["AZURE_REGION"]
 
 resource_client.resource_groups.create_or_update(GROUP_NAME, {'location': LOCATION})
 
-# NetworkManagementClient related Variables
-VNET_NAME       = 'azure-cloudmesh-vnet'
-SUBNET_NAME     = 'azure-cloudmesh-subnet'
-IP_CONFIG_NAME  = 'azure-cloudmesh-ip-config'
-NIC_NAME        = 'azure-cloudmesh-nic'
+# NetworkManagementClient related Variables pulled from Cloudmesh YAML file
+VNET_NAME       = default["network"]
+SUBNET_NAME     = default["subnet"]
+IP_CONFIG_NAME  = default["AZURE_VM_IP_CONFIG"]
+NIC_NAME        = default["AZURE_VM_NIC"]
 
 # Create Network Interface for Virtual Machine
 # Virtual Network
 async_vnet_creation = network_client.virtual_networks.create_or_update(
-
     GROUP_NAME,
     VNET_NAME,
     {
@@ -904,11 +1047,12 @@ async_nic_creation = network_client.network_interfaces.create_or_update(
 )
 nic = async_nic_creation.result()
 
-# Virtual Machine Parameters
-VM_NAME = 'Cloudmesh-Virtual-Machine'
-USERNAME = 'cloudmesh'
-PASSWORD = 'Cms2019'
-NIC_ID = nic.id
+# Azure VM Storage details
+OS_DISK_NAME    = default["AZURE_VM_DISK_NAME"]
+USERNAME        = default["AZURE_VM_USER"]
+PASSWORD        = default["AZURE_VM_PASSWORD"]
+VM_NAME         = default["AZURE_VM_NAME"]
+NIC_ID          = nic.id
 
 VM_PARAMETERS={
         'location': LOCATION,
