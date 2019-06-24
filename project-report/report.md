@@ -157,8 +157,6 @@ The following sections will dive deeper into each library's capabilities.
 
 ### ServicePrincipalCredentials Class
 
-:o: rewrite the example using cloudmesh Config()
-
 ```python
 from azure.common.credentials import ServicePrincipalCredentials
 ```
