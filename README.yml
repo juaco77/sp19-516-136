@@ -7,13 +7,13 @@ owner:
   semester: sp19
 project:
   - title: Azure Virtual Machines Management
-    status: "85%"
-    code: https://github.com/cloudmesh-community/sp19-516-136/tree/master/project-code/cloudmesh.azure/cloudmesh/azure/api/Provider.py
+    status: "90%"
+    code: https://github.com/cloudmesh-community/sp19-516-136/blob/master/project-code/cloudmesh.azure/cloudmesh/azure/api/PyAzure.py
     url: https://github.com/cloudmesh-community/sp19-516-136/blob/master/project-report/report.md
     pytest:
       - TBD
   - title: Azure Storage Management
-    status: "95%"
+    status: "100%"
     code: https://github.com/cloudmesh-community/sp19-516-136/blob/master/project-code/cloudmesh.azure/cloudmesh/storage/provider/azureblob/Provider.py
     url: https://github.com/cloudmesh-community/sp19-516-136/blob/master/project-report/report.md
     pytest:
